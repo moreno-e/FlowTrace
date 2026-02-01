@@ -1,40 +1,141 @@
+<template>
+  <main class="container">
+    <h1>🎥 FlowTrace</h1>
+    <p style="color: #666;">Workflow Recording Application</p>
+
+    <div style="margin: 2rem 0;">
+      <button
+        v-if="!isRecording"
+        @click="startRecording"
+        style="margin: 1rem; padding: 1em 2em; font-size: 1.2em; background-color: #4CAF50; color: white; border: none;"
+      >
+        ⏺️ Start Recording
+      </button>
+
+      <button
+        v-else
+        @click="stopRecording"
+        style="margin: 1rem; padding: 1em 2em; font-size: 1.2em; background-color: #f44336; color: white; border: none;"
+      >
+        ⏹️ Stop Recording
+      </button>
+    </div>
+
+    <p><strong>{{ recordingStatus }}</strong></p>
+
+    <div v-if="isRecording" style="margin: 1rem; padding: 1rem; background-color: #fff3cd; border-radius: 8px;">
+      <p style="margin: 0; color: #856404;">
+        🔴 <strong>Recording in progress...</strong><br/>
+        🖱️ Capturing clicks with screenshots<br/>
+        ⌨️ Capturing keyboard events<br/>
+        <small>(Check terminal for event logs)</small>
+      </p>
+    </div>
+
+    <hr style="margin: 3rem 0; opacity: 0.3;" />
+
+    <details style="margin: 2rem 0;">
+      <summary style="cursor: pointer; font-weight: bold;">🧪 Test Functions (Spike Testing)</summary>
+
+      <div style="margin-top: 1rem;">
+        <h3>🎯 Event Listener Test</h3>
+        <button @click="startListener" style="margin: 0.5rem;">
+          Start Event Listener
+        </button>
+        <p><strong>{{ listenerStatus }}</strong></p>
+        <p style="font-size: 0.9em; color: #666;">
+          After clicking, check your terminal for event logs.
+        </p>
+
+        <hr style="margin: 2rem 0; opacity: 0.3;" />
+
+        <h3>📸 Screenshot Test</h3>
+        <button @click="captureScreenshot" style="margin: 0.5rem;">
+          Capture Screenshot
+        </button>
+        <p><strong>{{ screenshotStatus }}</strong></p>
+        <p style="font-size: 0.9em; color: #666;">
+          Captures full screen and saves to ./recordings/ folder.
+        </p>
+      </div>
+    </details>
+  </main>
+</template>
+
 <script setup lang="ts">
 import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 
-const greetMsg = ref("");
-const name = ref("");
+const listenerStatus = ref("");
+const screenshotStatus = ref("");
+const recordingStatus = ref("");
+const isRecording = ref(false);
 
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg.value = await invoke("greet", { name: name.value });
+async function startListener() {
+  try {
+    const result = await invoke("start_event_listener");
+
+    listenerStatus.value = `✅ ${result}`;
+
+    console.log("Event listener started! Check your terminal for event logs.");
+  } catch (error) {
+    listenerStatus.value = `❌ Error: ${error}`;
+
+    console.error("Failed to start listener:", error);
+  }
+}
+
+async function captureScreenshot() {
+  screenshotStatus.value = "📸 Capturing...";
+
+  try {
+    const result = await invoke("capture_screenshot");
+
+    screenshotStatus.value = `✅ ${result}`;
+
+    console.log("Screenshot captured:", result);
+  } catch (error) {
+    screenshotStatus.value = `❌ Error: ${error}`;
+
+    console.error("Failed to capture screenshot:", error);
+  }
+}
+
+async function startRecording() {
+  recordingStatus.value = "🎬 Starting recording...";
+
+  try {
+    const result = await invoke("start_recording");
+
+    recordingStatus.value = `✅ Recording started!`;
+    isRecording.value = true;
+
+    console.log("Recording started:", result);
+  } catch (error) {
+    recordingStatus.value = `❌ Error: ${error}`;
+    isRecording.value = false;
+
+    console.error("Failed to start recording:", error);
+  }
+}
+
+async function stopRecording() {
+  recordingStatus.value = "⏹️ Stopping recording...";
+
+  try {
+    const result = await invoke("stop_recording");
+
+    recordingStatus.value = `✅ ${result}`;
+    isRecording.value = false;
+
+    console.log("Recording stopped:", result);
+  } catch (error) {
+    recordingStatus.value = `❌ Error: ${error}`;
+
+    console.error("Failed to stop recording:", error);
+  }
 }
 </script>
-
-<template>
-  <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
-
-    <div class="row">
-      <a href="https://vite.dev" target="_blank">
-        <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-      </a>
-      <a href="https://tauri.app" target="_blank">
-        <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-      </a>
-      <a href="https://vuejs.org/" target="_blank">
-        <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-      </a>
-    </div>
-    <p>Click on the Tauri, Vite, and Vue logos to learn more.</p>
-
-    <form class="row" @submit.prevent="greet">
-      <input id="greet-input" v-model="name" placeholder="Enter a name..." />
-      <button type="submit">Greet</button>
-    </form>
-    <p>{{ greetMsg }}</p>
-  </main>
-</template>
 
 <style scoped>
 .logo.vite:hover {
