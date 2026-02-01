@@ -1,53 +1,5 @@
-<script setup lang="ts">
-import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
-
-const greetMsg = ref("");
-const name = ref("");
-const listenerStatus = ref("");
-
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg.value = await invoke("greet", { name: name.value });
-}
-
-async function startListener() {
-  try {
-    const result = await invoke("start_event_listener");
-    listenerStatus.value = `✅ ${result}`;
-    console.log("Event listener started! Check your terminal for event logs.");
-  } catch (error) {
-    listenerStatus.value = `❌ Error: ${error}`;
-    console.error("Failed to start listener:", error);
-  }
-}
-</script>
-
 <template>
   <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
-
-    <div class="row">
-      <a href="https://vite.dev" target="_blank">
-        <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-      </a>
-      <a href="https://tauri.app" target="_blank">
-        <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-      </a>
-      <a href="https://vuejs.org/" target="_blank">
-        <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-      </a>
-    </div>
-    <p>Click on the Tauri, Vite, and Vue logos to learn more.</p>
-
-    <form class="row" @submit.prevent="greet">
-      <input id="greet-input" v-model="name" placeholder="Enter a name..." />
-      <button type="submit">Greet</button>
-    </form>
-    <p>{{ greetMsg }}</p>
-
-    <hr style="margin: 2rem 0; opacity: 0.3;" />
-
     <h2>🎯 Event Listener Test</h2>
     <button @click="startListener" style="margin: 1rem;">
       Start Event Listener
@@ -57,8 +9,58 @@ async function startListener() {
       After clicking, check your terminal for event logs.<br/>
       Move your mouse or click anywhere to see events.
     </p>
+
+    <hr style="margin: 2rem 0; opacity: 0.3;" />
+
+    <h2>📸 Screenshot Test</h2>
+    <button @click="captureScreenshot" style="margin: 1rem;">
+      Capture Screenshot
+    </button>
+    <p><strong>{{ screenshotStatus }}</strong></p>
+    <p style="font-size: 0.9em; color: #666;">
+      Captures full screen and saves to ./recordings/ folder.<br/>
+      Check terminal for file path.
+    </p>
   </main>
 </template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+import { invoke } from "@tauri-apps/api/core";
+
+const listenerStatus = ref("");
+const screenshotStatus = ref("");
+
+async function startListener() {
+  try {
+    const result = await invoke("start_event_listener");
+
+    listenerStatus.value = `✅ ${result}`;
+
+    console.log("Event listener started! Check your terminal for event logs.");
+  } catch (error) {
+    listenerStatus.value = `❌ Error: ${error}`;
+
+    console.error("Failed to start listener:", error);
+  }
+}
+
+async function captureScreenshot() {
+  screenshotStatus.value = "📸 Capturing...";
+
+  try {
+    const result = await invoke("capture_screenshot");
+
+    screenshotStatus.value = `✅ ${result}`;
+
+    console.log("Screenshot captured:", result);
+  } catch (error) {
+    screenshotStatus.value = `❌ Error: ${error}`;
+
+    console.error("Failed to capture screenshot:", error);
+  }
+}
+</script>
 
 <style scoped>
 .logo.vite:hover {
