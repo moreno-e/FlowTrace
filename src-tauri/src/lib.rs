@@ -169,8 +169,52 @@ fn handle_event(event: rdev::Event) {
                 }
             }
         }
+
+        // Process keyboard events
+        rdev::EventType::KeyPress(key) => {
+            // Only capture if we have an active session
+            if let Ok(session_lock) = CURRENT_SESSION.lock() {
+                if session_lock.is_none() {
+                    return; // No active recording session
+                }
+            } else {
+                return;
+            }
+
+            // Get key name as string
+            let key_str = format!("{:?}", key);
+
+            // Filter out modifier-only keys to reduce noise
+            if matches!(
+                key,
+                rdev::Key::ShiftLeft
+                    | rdev::Key::ShiftRight
+                    | rdev::Key::ControlLeft
+                    | rdev::Key::ControlRight
+                    | rdev::Key::Alt
+                    | rdev::Key::AltGr
+                    | rdev::Key::MetaLeft
+                    | rdev::Key::MetaRight
+            ) {
+                return; // Skip modifier-only presses
+            }
+
+            println!("⌨️  Key pressed: {}", key_str);
+
+            // Create event (no position for keyboard events)
+            let new_event = Event::new(EventType::KeyPress { key: key_str }, None);
+
+            // Add event to session (skip screenshot for keyboard to reduce noise)
+            if let Ok(mut session_lock) = CURRENT_SESSION.lock() {
+                if let Some(session) = session_lock.as_mut() {
+                    session.add_event(new_event);
+                    println!("✅ Key event added to session (total: {})", session.events.len());
+                }
+            }
+        }
+
         _ => {
-            // Ignore other event types for MVP (mouse moves, key presses, etc.)
+            // Ignore other event types (mouse moves, button release, etc.)
         }
     }
 }

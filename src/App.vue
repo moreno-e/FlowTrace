@@ -26,7 +26,9 @@
     <div v-if="isRecording" style="margin: 1rem; padding: 1rem; background-color: #fff3cd; border-radius: 8px;">
       <p style="margin: 0; color: #856404;">
         🔴 <strong>Recording in progress...</strong><br/>
-        Click anywhere to capture events with screenshots.
+        🖱️ Capturing clicks with screenshots<br/>
+        ⌨️ Capturing keyboard events<br/>
+        <small>(Check terminal for event logs)</small>
       </p>
     </div>
 

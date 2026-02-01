@@ -61,7 +61,7 @@ impl Event {
 #[serde(tag = "type")]
 pub enum EventType {
     Click { button: MouseButton },
-    // KeyPress { key: String }, // Descoped for MVP
+    KeyPress { key: String },
     // MouseMove, // Descoped for MVP (too noisy)
 }
 
