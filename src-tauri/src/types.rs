@@ -29,6 +29,14 @@ impl RecordingSession {
     }
 }
 
+/// Screenshots captured for an event
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Screenshots {
+    pub full_screen: Option<String>,
+    pub window_crop: Option<String>,
+    pub click_crop: Option<String>,
+}
+
 /// Represents a single captured event (click, keypress, etc.)
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Event {
@@ -36,7 +44,7 @@ pub struct Event {
     pub event_type: EventType,
     pub timestamp: DateTime<Utc>,
     pub position: Option<Position>,
-    pub screenshot_path: Option<String>,
+    pub screenshots: Screenshots,
     pub action_category: String,
     pub description: String,
 }
@@ -50,14 +58,22 @@ impl Event {
             event_type,
             timestamp: Utc::now(),
             position,
-            screenshot_path: None,
+            screenshots: Screenshots {
+                full_screen: None,
+                window_crop: None,
+                click_crop: None,
+            },
             action_category,
             description,
         }
     }
 
-    pub fn with_screenshot(mut self, path: String) -> Self {
-        self.screenshot_path = Some(path);
+    pub fn with_screenshots(mut self, full: Option<String>, window: Option<String>, click: Option<String>) -> Self {
+        self.screenshots = Screenshots {
+            full_screen: full,
+            window_crop: window,
+            click_crop: click,
+        };
         self
     }
 

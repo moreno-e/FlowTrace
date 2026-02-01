@@ -177,6 +177,10 @@ fn handle_event(event: rdev::Event) {
 
             println!("🖱️  Click detected at ({}, {})", position.x, position.y);
 
+            // Store position coordinates before moving
+            let click_x = position.x;
+            let click_y = position.y;
+
             // Create event
             let mut new_event = Event::new(
                 EventType::Click {
@@ -193,14 +197,14 @@ fn handle_event(event: rdev::Event) {
 
                     drop(session_lock); // Release lock before screenshot
 
-                    // Capture screenshot
-                    match screenshot::capture_for_event(&session_id, &event_id) {
-                        Ok(screenshot_path) => {
-                            new_event = new_event.with_screenshot(screenshot_path);
-                            println!("📸 Screenshot captured for event {}", event_id);
+                    // Capture all 3 screenshots
+                    match screenshot::capture_all_for_event(&session_id, &event_id, click_x, click_y) {
+                        Ok((full, window, click)) => {
+                            new_event = new_event.with_screenshots(Some(full), window, click);
+                            println!("📸 Screenshots captured for event {} (full + window + click)", event_id);
                         }
                         Err(e) => {
-                            eprintln!("⚠️  Failed to capture screenshot: {}", e);
+                            eprintln!("⚠️  Failed to capture screenshots: {}", e);
                         }
                     }
 
