@@ -4,10 +4,22 @@ import { invoke } from "@tauri-apps/api/core";
 
 const greetMsg = ref("");
 const name = ref("");
+const listenerStatus = ref("");
 
 async function greet() {
   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
   greetMsg.value = await invoke("greet", { name: name.value });
+}
+
+async function startListener() {
+  try {
+    const result = await invoke("start_event_listener");
+    listenerStatus.value = `✅ ${result}`;
+    console.log("Event listener started! Check your terminal for event logs.");
+  } catch (error) {
+    listenerStatus.value = `❌ Error: ${error}`;
+    console.error("Failed to start listener:", error);
+  }
 }
 </script>
 
@@ -33,6 +45,18 @@ async function greet() {
       <button type="submit">Greet</button>
     </form>
     <p>{{ greetMsg }}</p>
+
+    <hr style="margin: 2rem 0; opacity: 0.3;" />
+
+    <h2>🎯 Event Listener Test</h2>
+    <button @click="startListener" style="margin: 1rem;">
+      Start Event Listener
+    </button>
+    <p><strong>{{ listenerStatus }}</strong></p>
+    <p style="font-size: 0.9em; color: #666;">
+      After clicking, check your terminal for event logs.<br/>
+      Move your mouse or click anywhere to see events.
+    </p>
   </main>
 </template>
 
