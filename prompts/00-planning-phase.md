@@ -9,7 +9,6 @@
 ## 📋 ASSIGNMENT CONTEXT
 
 **Project**: Tauri desktop app for workflow recording
-**Evaluation Focus**: AI tool fluency, prioritization under constraints, code quality at speed
 **Key Constraint**: 4-hour strict time limit
 
 ### Requirements Summary
@@ -39,8 +38,7 @@
 **Prompt 1: Technical Research (Pre-Planning)**
 ```
 Question 1: Tech Stack for Event Monitoring
-"For a Tauri desktop app that needs to capture global clicks
-and keyboard events, what are the main Rust crates? Flag any known issues"
+"For a Tauri app with the following objective and core requirements. Provide a brief technical review (pros & cons) of 3 top possible dependencies/crates needed for this application to complete the objective. Flag known issues. Object: 'objective placed in'. Core Requirement: 'requirements placed in'"
 
 [Additional questions 2-4 about screenshots, window detection, prioritization]
 ```
@@ -53,7 +51,7 @@ and keyboard events, what are the main Rust crates? Flag any known issues"
 
 **Prompt 2: Strategic Planning**
 ```
-[Full assignment context + meta-instructions for documented collaboration]
+[Assignment context + meta-instructions for documented collaboration]
 
 Requesting:
 1. Prioritized implementation plan
@@ -131,23 +129,6 @@ Requesting:
 - **Backend**: Tauri 2 + Rust ✅
 - **Storage**: JSON files (decided above)
 
-### Critical Dependencies to Add
-
-```toml
-[dependencies]
-# Event monitoring (HIGH PRIORITY)
-rdev = { git = "https://github.com/fufesou/rdev" }
-
-# Screenshot capture (HIGH PRIORITY)
-screenshots = "0.8"
-
-# Utilities (MEDIUM PRIORITY)
-chrono = "0.4"          # Timestamps
-uuid = { version = "1", features = ["v4", "serde"] }  # Event IDs
-```
-
-**AI Warning Noted**: Do NOT add `xcap` or `active-win-pos-rs` until MVP works. These are scope creep risks.
-
 ### File Structure Plan
 
 ```
@@ -166,35 +147,6 @@ Start Button → Event Monitor Thread → Click Event → Screenshot → Save JS
 ```
 
 **AI Prediction**: Event monitor thread communication with Tauri will be the hardest part. Plan 1+ hour for debugging.
-
----
-
-## ⏰ HOUR-BY-HOUR TIMELINE
-
-### Hour 0-1: Foundation (Setup + Spikes)
-- Add Rust dependencies (Cargo.toml)
-- Run `cargo build` (10+ min first time - work on frontend during this)
-- Spike `event_monitor.rs` with println! statements
-- Spike `screenshot.rs` with manual trigger
-- **Checkpoint**: Can detect clicks? Can save screenshots?
-
-### Hour 1-2: Core Integration
-- Event → Screenshot pipeline
-- Storage layer (events.json)
-- Start/Stop recording Tauri commands
-- **Checkpoint**: Can record 5+ clicks with screenshots?
-
-### Hour 2-3: Stabilize or Extend (Decision Point)
-- **If MVP shaky**: Debug threading, error handling
-- **If MVP solid**: Add keyboard monitoring (stretch goal)
-- **Checkpoint**: Demo-ready MVP?
-
-### Hour 3-4: Documentation & Submission
-- Create `/prompts` entries (this file + implementation log)
-- Write comprehensive README
-- Code cleanup + formatting
-- Final testing
-- **Checkpoint**: Submission package ready
 
 ---
 
@@ -223,47 +175,7 @@ Start Button → Event Monitor Thread → Click Event → Screenshot → Save JS
 
 ---
 
-## 📊 SUCCESS METRICS (Self-Evaluation)
-
-**Minimum Viable Success**:
-- [ ] Tauri app runs on macOS
-- [ ] "Start Recording" button works
-- [ ] Records at least 5 click events with full-screen screenshots
-- [ ] Events saved to JSON file with timestamps
-- [ ] README explains setup (including permissions)
-- [ ] `/prompts` folder documents AI collaboration process
-
-**Stretch Success**:
-- [ ] Keyboard events captured
-- [ ] Window crop screenshots
-- [ ] Action classification logic
-
-**Documentation Success** (Key Differentiator):
-- [ ] Clear explanation of what AI suggested vs what human decided
-- [ ] Honest account of where AI led astray (if applicable)
-- [ ] Time breakdown (what took longer than expected)
-- [ ] Technical trade-offs documented with rationale
-
----
-
-## 🔄 WHAT HAPPENS NEXT
-
-**Immediate Next Steps** (To Be Logged in `01-implementation-log.md`):
-1. Add dependencies to `Cargo.toml`
-2. Start `cargo build` (background process)
-3. Create `src-tauri/src/event_monitor.rs` stub
-4. Test rdev basic event listening
-5. Document any deviations from this plan with reasoning
-
-**How This Document Will Be Used**:
-- Reference point for time-boxing decisions
-- Evidence of planning before coding
-- Demonstration of AI-assisted prioritization
-- Context for evaluators on what was cut and why
-
----
-
-## 💭 META-NOTES (Human Reflections)
+## 💭 META-NOTES
 
 **On AI Collaboration**:
 - AI provided time estimates (take with grain of salt - will verify in practice)
@@ -280,8 +192,3 @@ Start Button → Event Monitor Thread → Click Event → Screenshot → Save JS
 - Will rdev fork actually work on my macOS version? (Unknown until Hour 0 test)
 - Is screenshots crate fast enough for real-time capture? (Unknown)
 - Can I get Tauri thread communication right in < 1 hour? (Will find out)
-
----
-
-**Status**: ✅ Planning Complete, Ready to Implement
-**Next Document**: `01-implementation-log.md` (to be created during Hour 0-1)

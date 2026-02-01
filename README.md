@@ -1,50 +1,10 @@
 # FlowTrace
 
-**A Desktop Application for Recording Workflow Events**
+**Desktop Application for Defining Automation Workflow Steps**
 
-FlowTrace is a Tauri-based desktop application that captures global click and keyboard events with synchronized screenshots, storing them as structured JSON for workflow analysis and documentation.
+FlowTrace is a Tauri-based desktop application that captures global click and keyboard events with synchronized screenshots, storing them as structured JSON to define automation workflow steps that could be consumed by automation tools.
 
----
-
-## 📋 What Was Built
-
-### ✅ MUST HAVE Features Implemented
-
-- **Global Event Monitoring**
-  - Mouse click events (left, right, middle buttons) with position tracking
-  - Keyboard events (letters, numbers, special keys) with modifier filtering
-  - Automatic wait/pause detection (gaps > 2 seconds between events)
-
-- **Screenshot Capture**
-  - **Full screen**: Complete display capture for each click event
-  - **Window crop**: Active window detection and capture
-  - **Click crop**: 300x300px crop centered on click position
-  - All screenshots saved as PNG files (~2.2MB each)
-
-- **Event Storage**
-  - Session-based directory structure: `recordings/[session-id]/`
-  - JSON format with pretty-printing for readability
-  - Event metadata: timestamps, positions, screenshots, classifications
-
-- **Recording Interface**
-  - Start/Stop recording buttons in desktop UI
-  - Real-time terminal logging for debugging
-  - Session management with UUID-based identifiers
-
-### ✅ SHOULD HAVE Features Implemented
-
-- **Action Classification**
-  - 8 event categories: `interaction`, `text_input`, `submit`, `navigation`, `correction`, `cancel`, `wait`, `special_key`
-  - Human-readable descriptions for each event
-  - Example: `"Clicked left button at position (709, 328)"` or `"Pressed Enter (submit)"`
-
-### ❌ Descoped Features
-
-- **Event log UI display**: Terminal logging only (no in-app visualization)
-- **Step auto-grouping**: Each event stored individually (manual grouping possible post-processing)
-- **Advanced screenshot options**: No OCR, no compression, no format selection
-
-**Descoping Rationale**: With a 4-hour time constraint, these features would have compromised the quality of core functionality. Better to deliver polished essential features than buggy comprehensive implementation.
+**Tech Stack**: Tauri 2.0 + Rust backend + Vue 3 frontend + JSON storage
 
 ---
 
@@ -100,38 +60,7 @@ FlowTrace is a Tauri-based desktop application that captures global click and ke
 npm run tauri dev
 ```
 
-The desktop window will open with **Start Recording** and **Stop Recording** buttons.
-
----
-
-## 📖 How to Use
-
-1. **Start Recording**: Click "Start Recording" button
-   - Event monitoring begins immediately
-   - All clicks and keypresses are captured
-   - Pauses > 2 seconds automatically logged as Wait events
-
-2. **Perform Actions**: Use your mouse and keyboard normally
-   - Clicks trigger 3 screenshots: full screen, window crop, click crop
-   - Keypresses are logged without screenshots (performance optimization)
-   - Terminal shows real-time event logging
-
-3. **Stop Recording**: Click "Stop Recording" button
-   - Session is saved to `recordings/[session-id]/`
-   - JSON file created with all events and metadata
-   - Screenshots saved as PNG files in same directory
-
-4. **Review Output**:
-   ```bash
-   ls recordings/
-   # Output: [session-id]/
-
-   ls recordings/[session-id]/
-   # Output: session.json, event_[id]_full.png, event_[id]_window.png, event_[id]_click.png
-
-   cat recordings/[session-id]/session.json
-   # Pretty-printed JSON with all events
-   ```
+The desktop window will open with **Start Recording** and **Stop Recording** buttons. Recorded sessions are saved to `recordings/[session-id]/` with JSON and PNG screenshots.
 
 ---
 
@@ -198,297 +127,273 @@ recordings/
 
 ---
 
-## ⚠️ Known Limitations
+## 📋 What Was Completed vs What Was Descoped
 
-### 1. Retina Display Coordinate Scaling Issue
+### ✅ MUST HAVE Features Implemented
 
-**Problem**: On Retina/HiDPI displays (common on MacBooks), window crop and click crop screenshots are not accurately centered.
+- **Global Event Monitoring**
+  - Mouse click events (left, right, middle buttons) with position tracking
+  - Keyboard events (letters, numbers, special keys) with modifier filtering
+  - Automatic wait/pause detection (gaps > 2 seconds between events)
 
-**Technical Cause**:
-- **Event coordinates** (from `rdev` and `active-win-pos-rs`): Logical coordinates
-  - Example: Click at (713, 395) on a 2x Retina display
-- **Screenshot pixels** (from `screenshots` crate): Physical pixels
-  - Example: Image is 2880x1800 (2x the logical 1440x900)
-- **Mismatch**: Crop calculations apply logical coordinates to physical pixels
-  - Window crop: Uses logical window bounds on physical pixel image → 2x offset
-  - Click crop: Uses logical click position on physical pixel image → 2x offset
+- **Screenshot Capture**
+  - **Full screen**: Complete display capture for each click event
+  - **Window crop**: Active window detection and capture
+  - **Click crop**: 300x300px crop centered on click position
+  - All screenshots saved as PNG files (~2.2MB each)
 
-**Impact**:
-- **Full screen**: ✅ Works perfectly (no coordinates needed)
-- **Window crop**: ❌ Captures area offset from actual window
-- **Click crop**: ❌ Captures area offset from actual click location
+- **Event Storage**
+  - Session-based directory structure: `recordings/[session-id]/`
+  - JSON format with pretty-printing for readability
+  - Event metadata: timestamps, positions, screenshots, classifications
 
-**Current Status**: Documented limitation, not fixed in this MVP.
+- **Recording Interface**
+  - Start/Stop recording buttons in desktop UI
+  - Real-time terminal logging for debugging
+  - Session management with UUID-based identifiers
 
-**Potential Fix** (not implemented):
-```rust
-// Detect display scale factor
-let scale_factor = get_display_scale_factor(); // e.g., 2.0 for Retina
+### ✅ SHOULD HAVE Features Implemented
 
-// Adjust coordinates when cropping
-let physical_x = (logical_x * scale_factor) as u32;
-let physical_y = (logical_y * scale_factor) as u32;
-let physical_width = (logical_width * scale_factor) as u32;
-let physical_height = (logical_height * scale_factor) as u32;
+- **Action Classification**
+  - 8 event categories: `interaction`, `text_input`, `submit`, `navigation`, `correction`, `cancel`, `wait`, `special_key`
+  - Human-readable descriptions for each event
+  - Example: `"Clicked left button at position (709, 328)"` or `"Pressed Enter (submit)"`
 
-// Use physical coordinates for crop
-let cropped = dynamic_image.crop_imm(physical_x, physical_y, physical_width, physical_height);
-```
+### ❌ Descoped Features
 
-**Affected Code**:
-- `src-tauri/src/screenshot.rs:126-152` (capture_window_crop)
-- `src-tauri/src/screenshot.rs:154-184` (capture_click_crop)
+- **Event log UI display**: Terminal logging only (no in-app visualization)
+- **Step auto-grouping**: Each event stored individually (manual grouping possible post-processing)
+- **Advanced screenshot options**: No OCR, no compression, no format selection
 
-**Why Not Fixed?**: Discovered in final testing hour. Fixing would require:
-- Research into display scale detection APIs
-- Testing on multiple display configurations
-- Risk of introducing new bugs close to deadline
-- Decision: Document thoroughly rather than rush incomplete fix
-
-### 2. Event Listener Graceful Shutdown
-
-**Problem**: `rdev::listen()` blocks forever and cannot be gracefully stopped.
-
-**Impact**: Must restart the entire application to start a new recording session after stopping.
-
-**Workaround**: Close and reopen the app between recording sessions.
-
-**Proper Fix** (estimated +30 minutes):
-- Use tokio channels to communicate stop signal
-- Add conditional event handling to exit listener loop
-- Require significant refactoring of threading model
-
-### 3. Click Position Accuracy
-
-**Problem**: Click positions are tracked from `MouseMove` events, not `ButtonPress` events (rdev API limitation).
-
-**Impact**: Position might be 1-5 pixels off if clicking while moving mouse rapidly.
-
-**Acceptable for MVP**: This is a standard rdev pattern and has minimal impact on workflow documentation.
-
-### 4. First Screenshot Delay
-
-**Problem**: First screenshot in a session takes 2-3 seconds to capture.
-
-**Cause**: Lazy initialization of `screenshots` crate internal state.
-
-**Impact**: First event has noticeable delay; subsequent events are fast.
-
-**Status**: Normal behavior for screenshots crate, no fix needed.
-
-### 5. Keyboard Event Screenshots
-
-**Design Decision**: Keyboard events do NOT capture screenshots (clicks do).
-
-**Rationale**:
-- Reduces storage requirements (each screenshot ~2.2MB)
-- Improves performance (no screenshot overhead for rapid typing)
-- Click screenshots provide sufficient visual context
-
-**Trade-off**: Less visual evidence for what was typed, but action_category and description provide context.
+**Descoping Rationale**: With a 4-hour time constraint, these features would have compromised the quality of core functionality. Better to deliver polished essential features than buggy comprehensive implementation.
 
 ---
 
-## 🏗️ Architecture Overview
+## 🔧 Key Technical Decisions and Tradeoffs
 
-### Tech Stack
+### 1. JSON Storage vs SQLite
+**Decision**: Use JSON files with session-based directories
+**Rationale**: Simpler implementation (~30 min saved), easier debugging, no query requirements
+**Trade-off**: No built-in querying, but sufficient for workflow recording use case
 
-- **Frontend**: Vue 3 + TypeScript + Vite
-- **Backend**: Rust + Tauri 2.0
-- **Event Monitoring**: `rdev` (RustDesk fork for macOS stability)
-- **Screenshots**: `screenshots` crate + `image` crate for manipulation
-- **Window Detection**: `active-win-pos-rs`
-- **Storage**: JSON files with `serde` serialization
+### 2. No Screenshots for Keyboard Events
+**Decision**: Only capture screenshots for click events, not keypresses
+**Rationale**: Performance optimization (each screenshot ~2.2MB), reduces storage by 70%+
+**Trade-off**: Less visual evidence for typing, but action descriptions provide context
 
-### Key Files
+### 3. RustDesk rdev Fork vs Official
+**Decision**: Use `rdev` fork from RustDesk repository
+**Rationale**: Official rdev has known macOS crash bug with keyboard events
+**Impact**: Stable keyboard monitoring without crashes (AI flagged this proactively)
 
-- **`src-tauri/src/lib.rs`**: Main integration, event handling, global state management
-- **`src-tauri/src/types.rs`**: Data structures (Event, EventType, RecordingSession)
-- **`src-tauri/src/screenshot.rs`**: Screenshot capture logic (full, window, click crops)
-- **`src-tauri/src/storage.rs`**: JSON file I/O and session directory management
-- **`src-tauri/src/event_monitor.rs`**: Basic rdev event listener (spike testing)
-- **`src/App.vue`**: Recording UI (Start/Stop buttons)
+### 4. Descope Event Log UI
+**Decision**: Terminal logging only, no in-app event visualization UI
+**Rationale**: 4-hour constraint required focus on core capture functionality
+**Trade-off**: JSON file review instead of real-time UI, but sufficient for MVP
 
-### Threading Model
+### 5. Session-Based Directory Structure
+**Decision**: Each recording gets UUID directory with JSON + PNG files
+**Rationale**: Co-located data, easy archival/deletion, no database overhead
+**Benefit**: Simple file management, works well with version control
 
-```
-Main Thread (Tauri)
-├── UI event handlers (Start/Stop Recording)
-└── Shared State: Arc<Mutex<Option<RecordingSession>>>
+### 6. Known Limitation: Retina Display Coordinate Scaling
+**Issue**: Window and click crops are offset on Retina displays (full screen works fine)
+**Cause**: Event coordinates are logical pixels, screenshot pixels are physical (2x mismatch)
+**Decision**: Document limitation rather than rush incomplete fix in final hour
+**Fix Path**: Detect display scale factor and multiply coordinates before cropping
 
-Background Thread (rdev listener)
-├── handle_event() - processes clicks and keypresses
-├── check_and_insert_wait_event() - detects pauses
-├── screenshot::capture_all_for_event() - takes 3 screenshots
-└── Updates shared state via Arc<Mutex<>>
-```
-
-### Event Flow
-
-```
-1. User Action (click/keypress)
-   ↓
-2. rdev::listen() captures event
-   ↓
-3. handle_event() classifies and creates Event struct
-   ↓
-4. [If click] capture_all_for_event() takes 3 screenshots
-   ↓
-5. Event added to RecordingSession.events
-   ↓
-6. [On stop] save_session() writes JSON to disk
-```
+### 7. Event Listener Shutdown Limitation
+**Issue**: `rdev::listen()` blocks forever, cannot gracefully stop
+**Workaround**: Must restart app between recording sessions
+**Proper Fix**: Tokio channels for stop signal (~30 min additional work)
 
 ---
 
-## 🤖 AI Tool Usage Summary
+## 🚀 What I'd Build Next with More Time
 
-### Development Process
+### High Priority (Next 2-4 hours)
 
-**Tool Used**: Claude Code (Sonnet 4.5)
+1. **Fix Retina Display Coordinate Scaling** (~1 hour)
+   - Detect display scale factor using macOS APIs
+   - Multiply logical coordinates by scale factor before cropping
+   - Test on multiple display configurations (1x, 2x, 3x scaling)
 
-**Total Development Time**: 3 hours 15 minutes active work
-- Hour 0-1: Foundation & spike testing
-- Hour 1-2: Integration pipeline
-- Hour 2-3: Keyboard monitoring + action classification
-- Hour 3-4: 3 screenshots implementation + documentation
+2. **In-App Event Review UI** (~2 hours)
+   - Timeline view showing all captured events chronologically
+   - Thumbnail previews of screenshots for each click
+   - Edit event descriptions and action categories
+   - Delete/merge events before saving session
 
-### How AI Was Used
+3. **Graceful Event Listener Shutdown** (~1 hour)
+   - Refactor to use tokio channels for stop signal
+   - Allow multiple recording sessions without app restart
+   - Better state management for listener lifecycle
 
-1. **Technical Research & Planning** (Hour 0)
-   - Identified macOS-compatible crates (`rdev` fork vs official)
-   - Warned about permission requirements
-   - Provided time estimates for descoping decisions
-   - **Impact**: Avoided 30+ minutes of debugging known issues
+### Medium Priority (4-8 hours)
 
-2. **Implementation Assistance** (Hours 1-3)
-   - Generated boilerplate code for modules
-   - Provided architectural patterns (Arc<Mutex<>>, session directories)
-   - Quick bug diagnosis (chrono serde feature, rdev position tracking)
-   - **Impact**: Accelerated implementation, minimized time lost to bugs
+4. **Auto-Group Text Input Actions** (~2 hours)
+   - Detect consecutive KeyPress events and group into single "Type" action
+   - Example: 5 keypresses → "Typed 'hello'" with character sequence
+   - Configurable grouping timeout (e.g., 500ms between keypresses)
 
-3. **Code Review & Safety** (Throughout)
-   - Caught potential deadlock (lock held during screenshot)
-   - Suggested modifier key filtering for keyboard events
-   - Recommended performance optimizations (no screenshots for keypresses)
-   - **Impact**: Prevented runtime issues, improved user experience
+5. **Keyboard Shortcut Support** (~1 hour)
+   - Global hotkey to start/stop recording (e.g., Cmd+Shift+R)
+   - Eliminate need to click UI buttons during workflow capture
 
-4. **Documentation** (Hour 4)
-   - Comprehensive implementation log with git timeline analysis
-   - Technical documentation for retina display limitation
-   - README with setup instructions and examples
-   - **Impact**: Clear communication of decisions and trade-offs
+6. **Editable Action Annotations** (~3 hours)
+   - UI for adding custom titles to events ("Login to dashboard", "Submit form")
+   - Rich text descriptions with markdown support
+   - Tag events for easier filtering and organization
 
-### What AI Did Well
+### Nice to Have (8+ hours)
 
-✅ **Proactive Issue Flagging**: Identified rdev macOS crash bug BEFORE encountering it
-✅ **Quick Bug Fixes**: Instantly diagnosed missing chrono serde feature
-✅ **Descoping Recommendations**: Suggested realistic time estimates that kept project on track
-✅ **Code Review**: Caught concurrency issues and performance bottlenecks
+7. **Export to Automation Scripts** (~6 hours)
+   - Generate Selenium/Playwright scripts from JSON
+   - Map clicks to element selectors, text input to fill commands
+   - Convert FlowTrace sessions into executable automation code
 
-### What AI Struggled With
+8. **OCR for Screenshot Text Extraction** (~4 hours)
+   - Extract visible text from screenshots using Tesseract
+   - Enhance event descriptions with detected UI text
+   - Enable text-based search across recorded workflows
 
-⚠️ **API Assumptions**: Assumed rdev had unified `event.position` field without verifying (cost: 10 min)
-⚠️ **Time Estimates**: Some estimates were optimistic (e.g., "10 min" actually took 20 min)
-⚠️ **Platform Nuances**: Didn't explicitly mention parent process permissions for macOS
-
-### Collaboration Patterns
-
-**Most Effective**:
-- Start with strategic planning and descoping decisions
-- Use AI for technical research and crate compatibility
-- Verify AI assumptions with compiler feedback
-- Let AI handle boilerplate, developer handles architecture decisions
-
-**Lessons Learned**:
-- Always verify external crate APIs, especially forks
-- Treat AI time estimates as lower bounds (~1.5x multiplier)
-- Use AI proactively for code review, not just implementation
+9. **Compression and Format Options** (~2 hours)
+   - JPEG compression option to reduce file size (2.2MB → ~200KB per screenshot)
+   - WebP format support for better compression ratios
+   - Configurable screenshot quality settings
 
 ---
 
-## 📊 What Was Delivered vs What Was Descoped
+## 🤖 How I Used AI Tools
 
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| **Global click monitoring** | ✅ Complete | Left, right, middle buttons with position tracking |
-| **Global keyboard monitoring** | ✅ Complete | Letters, numbers, special keys with modifier filtering |
-| **3 screenshots per click** | ✅ Complete | Full screen, window crop, click crop (with retina caveat) |
-| **JSON storage** | ✅ Complete | Session-based directories, pretty-printed format |
-| **Start/Stop recording UI** | ✅ Complete | Simple button interface |
-| **Action classification** | ✅ Complete | 8 categories with human-readable descriptions |
-| **Wait detection** | ✅ Complete | Automatic pause detection (> 2 seconds) |
-| **Event log UI** | ❌ Descoped | Terminal logging only, no in-app visualization |
-| **Step auto-grouping** | ❌ Descoped | Each event stored individually |
-| **Advanced screenshot options** | ❌ Descoped | No OCR, compression, or format selection |
+### Tool Used
+**Claude Code (Sonnet 4.5)** via Claude API - Used extensively throughout planning, research, implementation, and documentation phases.
 
-**Descoping Strategy**: Focus on core functionality depth rather than feature breadth. Better to deliver polished essential features than buggy comprehensive implementation within 4-hour constraint.
+### AI Usage Throughout Development Process
+
+#### **Hour 0: Planning & Research Phase**
+
+**What I Prompted**:
+- "For a Tauri app with the following objective and core requirements. Provide a brief technical review (pros & cons) of 3 top possible dependencies/crates needed for this application to complete the objective. Flag known issues. Object: 'objective placed in'. Core Requirement: 'requirements placed in'"
+- "Compare rdev official vs RustDesk fork for stability"
+
+
+**What AI Provided**:
+- Provided a list of dependencies/crates needed for this application. Along with providing a realistic time estimates for descoping decisions.
+- Identified `rdev` RustDesk fork to avoid known macOS crash bug
+- Warned about macOS Accessibility permissions for event monitoring
+
+**Impact**: Avoided 30+ minutes debugging known issues by using vetted fork upfront
+
+#### **Hours 1-3: Implementation Phase**
+
+**What I Prompted**:
+- "Generate boilerplate for Rust module capturing screenshots with `screenshots` crate"
+- "How to share state between Tauri main thread and rdev listener thread?"
+- "Why am I getting 'chrono serde feature not enabled' compile error?"
+
+**What AI Provided**:
+- Generated initial code structure for screenshot.rs, types.rs, storage.rs
+- Suggested `Arc<Mutex<Option<RecordingSession>>>` pattern for thread-safe shared state
+- Instantly diagnosed missing Cargo.toml feature flag: `chrono = { version = "0.4", features = ["serde"] }`
+
+**Impact**: Accelerated implementation by ~2 hours through boilerplate generation and instant bug diagnosis
+
+#### **Throughout: Code Review & Refinement**
+
+**What AI Caught**:
+- **Deadlock Risk**: Warned that holding Mutex lock during screenshot capture (slow operation) could block UI thread
+- **Performance Issue**: Suggested removing screenshots from keyboard events to reduce storage by 70%+
+- **Event Filtering**: Recommended ignoring modifier keys (Shift, Ctrl, Alt) to avoid noise in recordings
+
+**Impact**: Prevented runtime issues and improved UX before encountering problems
+
+#### **Hour 4: Documentation Phase**
+
+**What I Prompted**:
+- "Analyze git commit history and create hour-by-hour implementation timeline"
+- "Document the Retina display coordinate scaling issue technically"
+- "Generate requirements compliance matrix from assignment PDF"
+
+**What AI Provided**:
+- Comprehensive implementation log with accurate git timeline
+- Technical explanation of logical vs physical pixel coordinate mismatch
+- Structured documentation matching assignment deliverable requirements
+
+**Impact**: Professional-grade documentation in <1 hour that clearly communicates decisions and trade-offs
 
 ---
 
-## 🧪 Testing
+### Specific Examples
 
-### Manual Test Cases
+#### ✅ Where AI Accelerated Me
 
-1. **Basic Recording** ✅
-   - Start recording → Click 5 times → Stop recording
-   - Verify: 5 events in JSON, 15 PNG files (3 per click)
+**Example**: Missing `chrono` serde feature causing compile error
 
-2. **Keyboard Events** ✅
-   - Start recording → Type "hello world" → Stop recording
-   - Verify: 11 KeyPress events in JSON (no screenshots)
+```
+Compiler Error: "the trait `Serialize` is not implemented for `DateTime<Utc>`"
 
-3. **Wait Detection** ✅
-   - Start recording → Click → Wait 3 seconds → Click → Stop recording
-   - Verify: 2 Click events + 1 Wait event with ~3s duration
+My Prompt: "ISSUE: Getting a 'chrono serde error' in the terminal, review the following error message below. Review any logs, if needed, to determine the error and fix."
 
-4. **Action Classification** ✅
-   - Start recording → Click + Type + Press Enter → Stop recording
-   - Verify: "interaction", "text_input", "submit" categories in JSON
+AI Response (instant): "Add serde feature to chrono in Cargo.toml:
+chrono = { version = "0.4", features = ["serde"] }"
 
-5. **Session Management** ✅
-   - Multiple recording sessions → Stop recording
-   - Verify: Separate directories with unique session IDs
+Time Saved: ~10 minutes of documentation searching
+```
 
-### Test Recordings Included
+#### ⚠️ Where AI Led Me Astray
 
-- `recordings/f2e904d2-286e-484c-83e8-5949bd8697f1/` - Example session with 4 events
-- See `session.json` for full event structure
+**Example**: Incorrect assumption about rdev API
+
+```
+AI Initial Code:
+let position = event.position; // Assumed unified position field
+
+Reality: rdev separates MouseMove (has position) from ButtonPress (no position)
+
+Fix Required: Track last MouseMove position manually in global state
+
+Time Lost: ~10 minutes debugging + refactoring
+```
+
+**Lesson**: Always verify AI assumptions about external crate APIs with actual documentation, especially for forks
+
+#### ⚠️ Optimistic Time Estimates
+
+**Example**: Screenshot implementation
+
+```
+AI Estimate: "Window crop with active-win-pos-rs: ~10 minutes"
+Actual Time: ~20 minutes (needed to understand coordinate systems and test)
+
+Pattern: AI time estimates were consistently 1.5x-2x lower than reality
+```
+
+**Adjustment**: Treat AI estimates as lower bounds, multiply by 1.5x for realistic planning
+
+---
+
+### Collaboration Patterns That Worked Best
+
+1. **Strategic Planning First**: Start with AI-assisted research and descoping before coding
+2. **Verify Assumptions**: Compile and test AI-generated code immediately, don't assume it works
+3. **Proactive Code Review**: Ask AI to review code for concurrency issues, not just generate it
+4. **Leverage for Boilerplate**: Let AI handle repetitive code, focus human effort on architecture decisions
+
+### Key Takeaway
+
+AI tools dramatically accelerate development when used strategically:
+- ✅ Research, boilerplate generation, bug diagnosis, documentation
+- ⚠️ Verify external API assumptions, multiply time estimates by 1.5x
+- ❌ Don't blindly trust without compiler feedback loop
+
+**Effective AI collaboration = Speed + Critical Thinking**
 
 ---
 
 ## 📚 Additional Documentation
 
-For detailed implementation timeline, bug reports, and AI collaboration analysis, see:
+For detailed implementation timeline, bug reports, and AI collaboration analysis:
 
 - **`prompts/00-planning-phase.md`** - Strategic planning and descoping decisions
 - **`prompts/01-implementation-log.md`** - Hour-by-hour development log with git timeline
-- **`prompts/QUICK-REFERENCE.md`** - Troubleshooting guide and common issues
-
----
-
-## 🙏 Acknowledgments
-
-**Assignment**: Take-home coding challenge (4-hour time limit)
-
-**Development Environment**:
-- macOS Sonoma 25.2.0
-- Rust 1.70+
-- Cursor (VS Code fork) with Claude Code integration
-- iTerm2 terminal
-
-**Key Dependencies**:
-- `rdev` (RustDesk fork) - Cross-platform input monitoring
-- `screenshots` - Screen capture library
-- `active-win-pos-rs` - Active window detection
-- `tauri` - Desktop app framework
-
----
-
-## 📝 License
-
-This is a take-home assignment project. All rights reserved.
-
----
-
-**Built with Claude Code in 3 hours 15 minutes** 🤖
