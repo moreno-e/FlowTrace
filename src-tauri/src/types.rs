@@ -37,22 +37,76 @@ pub struct Event {
     pub timestamp: DateTime<Utc>,
     pub position: Option<Position>,
     pub screenshot_path: Option<String>,
+    pub action_category: String,
+    pub description: String,
 }
 
 impl Event {
     pub fn new(event_type: EventType, position: Option<Position>) -> Self {
+        let (action_category, description) = Self::classify_and_describe(&event_type, &position);
+
         Self {
             id: uuid::Uuid::new_v4().to_string(),
             event_type,
             timestamp: Utc::now(),
             position,
             screenshot_path: None,
+            action_category,
+            description,
         }
     }
 
     pub fn with_screenshot(mut self, path: String) -> Self {
         self.screenshot_path = Some(path);
         self
+    }
+
+    /// Classify event and generate human-readable description
+    fn classify_and_describe(event_type: &EventType, position: &Option<Position>) -> (String, String) {
+        match event_type {
+            EventType::Click { button } => {
+                let category = "interaction".to_string();
+                let button_name = match button {
+                    MouseButton::Left => "left",
+                    MouseButton::Right => "right",
+                    MouseButton::Middle => "middle",
+                };
+                let description = match position {
+                    Some(pos) => format!("Clicked {} button at position ({}, {})", button_name, pos.x, pos.y),
+                    None => format!("Clicked {} button", button_name),
+                };
+                (category, description)
+            }
+            EventType::KeyPress { key } => {
+                // Classify based on key type
+                let (category, description) = if key.starts_with("Key") {
+                    // Letter key (KeyA, KeyB, etc.)
+                    let letter = key.strip_prefix("Key").unwrap_or(key);
+                    ("text_input".to_string(), format!("Typed: {}", letter))
+                } else if key.starts_with("Num") {
+                    // Number key (Num1, Num2, etc.)
+                    let num = key.strip_prefix("Num").unwrap_or(key);
+                    ("text_input".to_string(), format!("Typed: {}", num))
+                } else if key == "Space" {
+                    ("text_input".to_string(), "Typed: Space".to_string())
+                } else if key == "Return" || key == "Enter" {
+                    ("submit".to_string(), "Pressed Enter (submit)".to_string())
+                } else if key == "Tab" {
+                    ("navigation".to_string(), "Pressed Tab (navigate)".to_string())
+                } else if key == "Backspace" || key == "Delete" {
+                    ("correction".to_string(), format!("Pressed {} (correction)", key))
+                } else if key == "Escape" {
+                    ("cancel".to_string(), "Pressed Escape (cancel)".to_string())
+                } else {
+                    // Other special keys
+                    ("special_key".to_string(), format!("Pressed: {}", key))
+                };
+                (category, description)
+            }
+            EventType::Wait { duration_seconds } => {
+                ("wait".to_string(), format!("Paused for {:.1} seconds", duration_seconds))
+            }
+        }
     }
 }
 
@@ -62,6 +116,7 @@ impl Event {
 pub enum EventType {
     Click { button: MouseButton },
     KeyPress { key: String },
+    Wait { duration_seconds: f64 },
     // MouseMove, // Descoped for MVP (too noisy)
 }
 

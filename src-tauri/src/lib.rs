@@ -16,6 +16,10 @@ static CURRENT_SESSION: Lazy<Arc<Mutex<Option<RecordingSession>>>> =
 static LAST_MOUSE_POSITION: Lazy<Arc<Mutex<(f64, f64)>>> =
     Lazy::new(|| Arc::new(Mutex::new((0.0, 0.0))));
 
+// Track last event timestamp for wait detection
+static LAST_EVENT_TIME: Lazy<Arc<Mutex<Option<chrono::DateTime<chrono::Utc>>>>> =
+    Lazy::new(|| Arc::new(Mutex::new(None)));
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -101,8 +105,49 @@ fn stop_recording() -> Result<String, String> {
     }
 }
 
+/// Check if enough time has passed since last event to insert a Wait event
+fn check_and_insert_wait_event() {
+    const WAIT_THRESHOLD_SECONDS: f64 = 2.0;
+
+    let now = chrono::Utc::now();
+
+    // Get last event timestamp
+    if let Ok(mut last_time_lock) = LAST_EVENT_TIME.lock() {
+        if let Some(last_time) = *last_time_lock {
+            let duration = (now - last_time).num_milliseconds() as f64 / 1000.0;
+
+            // If gap is significant, insert a Wait event
+            if duration >= WAIT_THRESHOLD_SECONDS {
+                println!("⏸️  Wait detected: {:.1}s pause", duration);
+
+                // Create Wait event
+                let wait_event = Event::new(
+                    EventType::Wait {
+                        duration_seconds: duration,
+                    },
+                    None,
+                );
+
+                // Add to session
+                if let Ok(mut session_lock) = CURRENT_SESSION.lock() {
+                    if let Some(session) = session_lock.as_mut() {
+                        session.add_event(wait_event);
+                        println!("✅ Wait event added to session (total: {})", session.events.len());
+                    }
+                }
+            }
+        }
+
+        // Update last event time
+        *last_time_lock = Some(now);
+    }
+}
+
 /// Handle incoming events from rdev listener
 fn handle_event(event: rdev::Event) {
+    // Check for wait/pause detection (time gap > 2 seconds)
+    check_and_insert_wait_event();
+
     match event.event_type {
         // Track mouse position from MouseMove events
         rdev::EventType::MouseMove { x, y } => {
