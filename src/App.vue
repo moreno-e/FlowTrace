@@ -1,26 +1,62 @@
 <template>
   <main class="container">
-    <h2>🎯 Event Listener Test</h2>
-    <button @click="startListener" style="margin: 1rem;">
-      Start Event Listener
-    </button>
-    <p><strong>{{ listenerStatus }}</strong></p>
-    <p style="font-size: 0.9em; color: #666;">
-      After clicking, check your terminal for event logs.<br/>
-      Move your mouse or click anywhere to see events.
-    </p>
+    <h1>🎥 FlowTrace</h1>
+    <p style="color: #666;">Workflow Recording Application</p>
 
-    <hr style="margin: 2rem 0; opacity: 0.3;" />
+    <div style="margin: 2rem 0;">
+      <button
+        v-if="!isRecording"
+        @click="startRecording"
+        style="margin: 1rem; padding: 1em 2em; font-size: 1.2em; background-color: #4CAF50; color: white; border: none;"
+      >
+        ⏺️ Start Recording
+      </button>
 
-    <h2>📸 Screenshot Test</h2>
-    <button @click="captureScreenshot" style="margin: 1rem;">
-      Capture Screenshot
-    </button>
-    <p><strong>{{ screenshotStatus }}</strong></p>
-    <p style="font-size: 0.9em; color: #666;">
-      Captures full screen and saves to ./recordings/ folder.<br/>
-      Check terminal for file path.
-    </p>
+      <button
+        v-else
+        @click="stopRecording"
+        style="margin: 1rem; padding: 1em 2em; font-size: 1.2em; background-color: #f44336; color: white; border: none;"
+      >
+        ⏹️ Stop Recording
+      </button>
+    </div>
+
+    <p><strong>{{ recordingStatus }}</strong></p>
+
+    <div v-if="isRecording" style="margin: 1rem; padding: 1rem; background-color: #fff3cd; border-radius: 8px;">
+      <p style="margin: 0; color: #856404;">
+        🔴 <strong>Recording in progress...</strong><br/>
+        Click anywhere to capture events with screenshots.
+      </p>
+    </div>
+
+    <hr style="margin: 3rem 0; opacity: 0.3;" />
+
+    <details style="margin: 2rem 0;">
+      <summary style="cursor: pointer; font-weight: bold;">🧪 Test Functions (Spike Testing)</summary>
+
+      <div style="margin-top: 1rem;">
+        <h3>🎯 Event Listener Test</h3>
+        <button @click="startListener" style="margin: 0.5rem;">
+          Start Event Listener
+        </button>
+        <p><strong>{{ listenerStatus }}</strong></p>
+        <p style="font-size: 0.9em; color: #666;">
+          After clicking, check your terminal for event logs.
+        </p>
+
+        <hr style="margin: 2rem 0; opacity: 0.3;" />
+
+        <h3>📸 Screenshot Test</h3>
+        <button @click="captureScreenshot" style="margin: 0.5rem;">
+          Capture Screenshot
+        </button>
+        <p><strong>{{ screenshotStatus }}</strong></p>
+        <p style="font-size: 0.9em; color: #666;">
+          Captures full screen and saves to ./recordings/ folder.
+        </p>
+      </div>
+    </details>
   </main>
 </template>
 
@@ -30,6 +66,8 @@ import { invoke } from "@tauri-apps/api/core";
 
 const listenerStatus = ref("");
 const screenshotStatus = ref("");
+const recordingStatus = ref("");
+const isRecording = ref(false);
 
 async function startListener() {
   try {
@@ -58,6 +96,41 @@ async function captureScreenshot() {
     screenshotStatus.value = `❌ Error: ${error}`;
 
     console.error("Failed to capture screenshot:", error);
+  }
+}
+
+async function startRecording() {
+  recordingStatus.value = "🎬 Starting recording...";
+
+  try {
+    const result = await invoke("start_recording");
+
+    recordingStatus.value = `✅ Recording started!`;
+    isRecording.value = true;
+
+    console.log("Recording started:", result);
+  } catch (error) {
+    recordingStatus.value = `❌ Error: ${error}`;
+    isRecording.value = false;
+
+    console.error("Failed to start recording:", error);
+  }
+}
+
+async function stopRecording() {
+  recordingStatus.value = "⏹️ Stopping recording...";
+
+  try {
+    const result = await invoke("stop_recording");
+
+    recordingStatus.value = `✅ ${result}`;
+    isRecording.value = false;
+
+    console.log("Recording stopped:", result);
+  } catch (error) {
+    recordingStatus.value = `❌ Error: ${error}`;
+
+    console.error("Failed to stop recording:", error);
   }
 }
 </script>
