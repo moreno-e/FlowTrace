@@ -625,6 +625,61 @@
 
 ---
 
-**Log Status**: ✅ Complete through Hour 2 (MVP Integration)
-**Last Updated**: 2026-02-01 07:40 AM
-**Next Update**: After Hour 3 testing/cleanup
+## ⏱️ HOUR 3: KEYBOARD MONITORING & TESTING
+
+### **2:00-2:20 — Keyboard Event Capture**
+**Planned**: 45-60 minutes
+**Actual**: 20 minutes
+
+**Actions**:
+- Enabled `KeyPress` event type in types.rs
+- Added keyboard event handling in lib.rs
+- Filtered out modifier-only keys (Shift, Ctrl, Alt, Cmd)
+- Skip screenshots for keyboard events (design decision)
+- Updated UI to show keyboard capture status
+
+**Design Decision**: No screenshots for keyboard events
+- **Rationale**: Reduces noise, improves performance
+- **Trade-off**: Less visual context for keypress events
+- **Acceptable**: Clicks provide visual snapshots, keys provide intent
+
+**Implementation Details**:
+- Each keypress = separate event (no auto-grouping)
+- Key format: `KeyA`, `KeyB`, `Num1`, `Space`, `Return`, etc.
+- Position field is `null` for keyboard events
+- Only captured when recording session is active
+
+**Testing** (2:20-2:25):
+- Recorded session: 19 events in 23 seconds
+- Events captured: 2 clicks + 17 keypresses
+- Typed: "1234 hello world12"
+- JSON format verified: ✅ Perfect structure
+- Screenshots verified: ✅ 2 PNG files (2.2MB each)
+
+**AI Contribution**:
+- ✅ Provided efficient implementation pattern
+- ✅ Suggested filtering modifier keys
+- ✅ Recommended skipping screenshots for keys
+- **Time saved**: Implementation took 20 min instead of estimated 45-60 min
+
+**Result**: ✅ Keyboard monitoring working perfectly
+
+---
+
+## 💾 GIT CHECKPOINT (Hour 3)
+
+**Commit**: `b545be8 feat: Add keyboard event monitoring`
+
+**What's Committed**:
+- Keyboard event capture (KeyPress events)
+- Modifier key filtering
+- Updated UI messaging
+- Tested with real recording session
+
+**Status**: Fulfills "clicks AND keyboard" requirement ✅
+
+---
+
+**Log Status**: ✅ Complete through Hour 3 (Keyboard Monitoring)
+**Last Updated**: 2026-02-01 08:15 AM
+**Next Update**: After Hour 4 documentation
