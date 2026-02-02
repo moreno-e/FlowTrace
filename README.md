@@ -6,6 +6,16 @@ FlowTrace is a Tauri-based desktop application that captures global click and ke
 
 **Tech Stack**: Tauri 2.0 + Rust backend + Vue 3 frontend + JSON storage
 
+**Demo**
+<div>
+    <a href="https://www.loom.com/share/149ff48564434ddba68cb86d3f4b348c">
+      <p>Automating Legacy Workflows with Flowtrace: A Desktop Application Demo - Watch Video</p>
+    </a>
+    <a href="https://www.loom.com/share/149ff48564434ddba68cb86d3f4b348c">
+      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/149ff48564434ddba68cb86d3f4b348c-456dbce584902d27-full-play.gif#t=0.1">
+    </a>
+</div>
+
 ---
 
 ## 🚀 Setup Instructions
